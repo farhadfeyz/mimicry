@@ -95,7 +95,7 @@ Genericizing Rule
 Apply Genericizing ONLY when “entrepreneurship” or “entrepreneurs” appear immediately beside other economic roles (producers, laborers, farmers, salesmen).
 Do NOT apply it broadly.
 
-Ideologizing – Anti‑Imperialism/America Rule
+Ideologization – Anti‑Imperialism/America Rule
 Apply this ONLY when the text explicitly:
 
 criticizes America or imperialism
@@ -119,7 +119,7 @@ mentions preventing foreign currency outflow
 
 mentions reverse engineering foreign goods
 
-Normalization Rule
+Beautification Rule
 Apply when the text:
 
 denies unemployment
