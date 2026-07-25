@@ -1,0 +1,197 @@
+!pip install hazm gensim pandas matplotlib
+from google.colab import files
+uploaded = files.upload()   
+import pandas as pd
+
+
+df = pd.read_csv('Book2.csv', encoding='utf-8', header=None)
+
+
+df['text'] = df.iloc[:, 0].astype(str) + ' ' + df.iloc[:, 1].astype(str)
+
+sentences = df['text'].tolist()
+print(f"Number of documents: {len(sentences)}")
+print("Example:", sentences[0])
+from hazm import Normalizer, word_tokenize, Stemmer, stopwords_list
+
+normalizer = Normalizer()
+stemmer = Stemmer()
+persian_stopwords = set(stopwords_list())
+
+def preprocess(text):
+    text = normalizer.normalize(text)                     # normalizes Persian characters
+    tokens = word_tokenize(text)                          # tokenizes
+    tokens = [t for t in tokens if t not in persian_stopwords]  # remove stopwords
+    tokens = [t for t in tokens if len(t) > 1]            # remove very short tokens
+    # tokens = [stemmer.stem(t) for t in tokens]          # uncomment if you want stemming
+    return tokens
+
+processed = [preprocess(s) for s in sentences]
+
+# Remove empty documents (just in case)
+processed = [doc for doc in processed if len(doc) > 0]
+print("Docs after preprocessing:", len(processed))
+print("Sample tokens:", processed[0][:10])
+import gensim
+from gensim import corpora
+
+# Create dictionary
+id2word = corpora.Dictionary(processed)
+# Filter extremes (optional, helps with very small dataset)
+id2word.filter_extremes(no_below=2, no_above=0.9)
+
+# Create bag-of-words corpus
+corpus = [id2word.doc2bow(doc) for doc in processed]
+from gensim.models import LdaModel, CoherenceModel
+import matplotlib.pyplot as plt
+
+coherence_scores = []
+k_range = range(2, 16)   # adjust the upper bound as you like
+
+for k in k_range:
+    lda_model = LdaModel(corpus=corpus,
+                         id2word=id2word,
+                         num_topics=k,
+                         random_state=42,
+                         passes=10,
+                         alpha='auto')
+    coherence = CoherenceModel(model=lda_model,
+                               texts=processed,
+                               dictionary=id2word,
+                               coherence='c_v')
+    score = coherence.get_coherence()
+    coherence_scores.append(score)
+    print(f"K={k}, Coherence={score:.4f}")
+
+# Plot
+plt.figure(figsize=(8,4))
+plt.plot(k_range, coherence_scores, marker='o')
+plt.xlabel("Number of Topics (K)")
+plt.ylabel("Coherence Score (c_v)")
+plt.title("Coherence Score for LDA Topic Models")
+plt.grid(True)
+plt.show()
+best_k = 6   # set this after looking at the plot
+final_model = LdaModel(corpus=corpus,
+                       id2word=id2word,
+                       num_topics=best_k,
+                       random_state=42,
+                       passes=20,
+                       alpha='auto',
+                       eta='auto')
+
+# Print topics
+topics = final_model.print_topics(num_words=10)
+for idx, topic in topics:
+    print(f"Topic {idx}: {topic}")
+	
+best_k = 6
+final_model = LdaModel(corpus=corpus,
+                       id2word=id2word,
+                       num_topics=best_k,
+                       random_state=42,
+                       passes=20,
+                       alpha='auto',
+                       eta='auto')
+					 
+					 
+from gensim.models import CoherenceModel
+
+# Choose a coherence measure that supports per-topic scores
+# 'c_v' is recommended and works well for small datasets
+coherence_model = CoherenceModel(model=final_model,
+                                 texts=processed,       # tokenized documents
+                                 dictionary=id2word,
+                                 coherence='c_v')
+
+# List of coherence scores, one per topic
+per_topic_coherence = coherence_model.get_coherence_per_topic()
+
+# Pair each topic ID with its coherence score
+topic_coherence_pairs = list(enumerate(per_topic_coherence))
+
+# Sort by coherence descending (highest coherence first)
+sorted_topics = sorted(topic_coherence_pairs, key=lambda x: x[1], reverse=True)
+
+# Print the topics in the new order
+print("Topics ordered by per-topic coherence (c_v):\n")
+for topic_id, coh in sorted_topics:
+    words = final_model.show_topic(topic_id, topn=10)
+    words_str = ", ".join([f"{w}" for w, _ in words])
+    print(f"Topic {topic_id} (coherence={coh:.4f}): {words_str}")
+	
+# final_model is already trained, and sorted_topics from before:
+# sorted_topics = sorted(topic_coherence_pairs, key=lambda x: x[1], reverse=True)
+
+print("Topics ordered by per-topic coherence (c_v):\n")
+for topic_id, coh in sorted_topics:
+    # print_topic() returns a string like: 0.045*"ایران" + 0.032*"تهران" + ...
+    topic_str = final_model.print_topic(topic_id, topn=10)
+    print(f"Topic {topic_id} (coherence={coh:.4f}): {topic_str}")
+
+import numpy as np
+
+# Topic-word probability matrix: shape (num_topics, vocab_size)
+phi = final_model.get_topics()  # each row is a topic, columns = id2word
+
+# Vocabulary size
+vocab_size = len(id2word)
+num_topics = phi.shape[0]
+
+# Compute overall word frequencies p(w) from the corpus
+# We'll sum over all documents and then normalise
+corpus_word_counts = np.zeros(vocab_size)
+for doc_bow in corpus:
+    for word_id, count in doc_bow:
+        corpus_word_counts[word_id] += count
+
+p_w = corpus_word_counts / corpus_word_counts.sum()
+
+# Compute exclusivity for each (topic, word)
+# excl[t,k] = phi[t,k] / sum over all topics of phi[:,k]
+excl = np.zeros_like(phi)
+for k in range(vocab_size):
+    col_sum = phi[:, k].sum()
+    if col_sum > 0:
+        excl[:, k] = phi[:, k] / col_sum
+
+# Compute ranks for frequency (within topic) and exclusivity (within topic)
+freq_ranks = np.zeros_like(phi)
+excl_ranks = np.zeros_like(phi)
+
+for t in range(num_topics):
+    # Rank frequency: highest probability -> rank 1
+    freq_ranks[t, :] = np.argsort(np.argsort(-phi[t, :])) + 1
+    # Rank exclusivity: highest exclusivity -> rank 1
+    excl_ranks[t, :] = np.argsort(np.argsort(-excl[t, :])) + 1
+
+# FREX score (harmonic mean of the two ranks, lower is better)
+frex_score = 2.0 / (1.0 / freq_ranks + 1.0 / excl_ranks)
+
+lam = 0.6  # you can tune this
+
+# log p(w|k)  and  log p(w|k)/p(w)  = log(p(w|k)) - log(p(w))
+log_phi = np.log(phi + 1e-12)          # avoid log(0)
+log_p_w = np.log(p_w + 1e-12)
+
+log_lift = log_phi - log_p_w[np.newaxis, :]   # log( p(w|k)/p(w) )
+
+relevance = lam * log_phi + (1 - lam) * log_lift
+# Higher relevance = better word for that topic
+
+print("Topics ordered by per‑topic coherence (c_v), top words by FREX:\n")
+for topic_id, coh in sorted_topics:
+    # Get word indices sorted by smallest FREX score (best)
+    best_word_ids = np.argsort(frex_score[topic_id, :])[:10]   # top 10
+    words_list = [id2word[i] for i in best_word_ids]
+    # Optionally add FREX values
+    frex_vals = frex_score[topic_id, best_word_ids]
+    parts = [f'{id2word[i]} (FREX={frex_score[topic_id,i]:.2f})' for i in best_word_ids]
+    print(f"Topic {topic_id} (coherence={coh:.4f}): {', '.join(parts)}")
+	
+	print("\nTopics ordered by coherence, top words by Relevance (λ=0.6):\n")
+for topic_id, coh in sorted_topics:
+    best_word_ids = np.argsort(-relevance[topic_id, :])[:10]   # descending relevance
+    rel_vals = relevance[topic_id, best_word_ids]
+    parts = [f'{id2word[i]} (rel={rel:.2f})' for i, rel in zip(best_word_ids, rel_vals)]
+    print(f"Topic {topic_id} (coherence={coh:.4f}): {', '.join(parts)}")
