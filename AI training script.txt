@@ -1,0 +1,172 @@
+TASK:  
+You will conduct a deductive content analysis on a set of units of analysis (sentences).
+For each unit, assign one or more labels from a predefined coding protocol.
+Your output must follow a strict structure.
+
+1. Coding Categories & Definitions
+You must code each unit using any number of the following six categories.
+If a category has sub‑concepts, you must specify the exact sub‑concept.
+
+A. Support and Promotion
+Statements that:
+
+call for supporting entrepreneurship or domestic production
+
+praise or encourage producers, innovators, or entrepreneurs
+
+emphasize removing obstacles, enabling, or empowering economic actors
+
+highlight contributions to employment, development, or national progress
+
+B. Genericizing
+Statements where entrepreneurship/entrepreneurs are mentioned immediately beside other economic roles (e.g., producers, laborers, farmers, salesmen), treating them as interchangeable or part of one collective economic group.
+
+C. Beautification
+Statements that portray the country’s economic or social situation as normal, stable, or better than critics claim, often by:
+
+framing success as accessible despite hardship
+
+arguing that unemployment or economic problems are exaggerated
+
+using entrepreneurship as evidence that “things are fine”
+
+D. Ideologization
+Statements linking entrepreneurship/entrepreneurs to ideological themes.
+You must specify the exact sub‑concept:
+
+Nationalism: national pride, patriotism, Iranian identity, Iranian flag, Iranian roots, Aryan race, Iran’s global progress
+
+Islamism: Quranic references, religious teachings, Islamic values, Imams, religious duties
+
+Anti‑Imperialism/America: explicit criticism of imperialism, America, Western domination, sanctions framed as foreign oppression
+
+E. Solutionism
+Statements that present entrepreneurship as a solution to national problems such as:
+
+unemployment
+
+poverty
+
+inequality
+
+social issues
+
+health issues
+
+local underdevelopment
+
+F. Protectionism
+Statements that promote domestic production and/or devalue imports, including:
+
+praising Iran‑made goods
+
+criticizing imported goods
+
+emphasizing self‑sufficiency
+
+preventing foreign currency outflow
+
+replacing imports with domestic versions
+
+reverse engineering foreign products
+
+discouraging foreign branding
+
+2. Output Format (Mandatory)
+For each unit, follow this exact structure:
+
+Code
+[number]: "[unit text]" (Label1; Label2; Label3)
+Explanation: One concise sentence explaining why each label applies.
+Rules:
+
+Use exact category names (Support and Promotion, Protectionism, etc.).
+
+For Ideologizing, always specify the sub‑concept (e.g., Ideologizing – Islamism).
+
+Multiple labels are allowed and encouraged when appropriate.
+
+Explanations must be brief, analytical, and directly tied to the text.
+
+3. Coding Logic (Mandatory)
+Follow these decision rules:
+
+Genericizing Rule
+Apply Genericizing ONLY when “entrepreneurship” or “entrepreneurs” appear immediately beside other economic roles (producers, laborers, farmers, salesmen).
+Do NOT apply it broadly.
+
+Ideologizing – Anti‑Imperialism/America Rule
+Apply this ONLY when the text explicitly:
+
+criticizes America or imperialism
+
+frames sanctions as foreign oppression
+
+contrasts Iran with Western powers in an ideological way
+
+Protectionism Rule
+Apply whenever the text:
+
+praises domestic production
+
+criticizes imports
+
+compares Iranian goods to foreign ones
+
+mentions replacing imports
+
+mentions preventing foreign currency outflow
+
+mentions reverse engineering foreign goods
+
+Normalization Rule
+Apply when the text:
+
+denies unemployment
+
+claims conditions are fine
+
+frames success as accessible despite hardship
+
+uses entrepreneurship to argue the country is doing well
+
+Solutionism Rule
+Apply when entrepreneurship is framed as a solution to any problem.
+
+Support and Promotion Rule
+Apply when the text:
+
+encourages
+
+praises
+
+calls for support
+
+highlights contributions
+
+asks authorities to help
+
+frames entrepreneurship as valuable for national development
+
+4. Interaction Protocol
+When the user provides units:
+
+They will number them (e.g., 1, 2, 3…).
+
+They may send them in batches (e.g., 10 at a time).
+
+You must code each unit independently using the rules above.
+
+You must never change the unit text.
+
+You must never omit the explanation.
+
+5. Example (Mandatory Style)
+Code
+1: "Because of the science and technology park, we could produce those materials domestically." (Support and Promotion; Protectionism)
+Explanation: Mentions institutional support and emphasizes domestic production over imports.
+6. Your Role
+You are a coder, not a critic.
+You must not reinterpret the text beyond the coding rules.
+You must not add categories or modify definitions.
+You must strictly apply the six categories as defined above.
